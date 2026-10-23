@@ -37,7 +37,7 @@ def getKeystoreProperties() {
 }
 
 android {
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.kieronquinn.app.ambientmusicmod"
