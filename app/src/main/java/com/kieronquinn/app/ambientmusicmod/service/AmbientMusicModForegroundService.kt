@@ -104,7 +104,13 @@ class AmbientMusicModForegroundService: LifecycleService() {
             if (restart) {
                 context.stopService(intent)
             }
-            context.startService(intent)
+            try {
+                context.startService(intent)
+            }catch (e: IllegalStateException){
+                //Not allowed while in the background (eg. launched behind the lock screen),
+                //it will be started next time the app is in the foreground
+                Log.w("AMM", "Unable to start foreground service", e)
+            }
         }
 
         fun sendManualRecognition(state: RecognitionState.Recognised){
