@@ -42,16 +42,11 @@ class AccessibilityRepositoryImpl(context: Context): AccessibilityRepository {
         context.secureStringConverter(Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
     ).map { current ->
         if(current == null) return@map false
-        val currentSet = when {
-            current.contains(",") -> {
-                current.split(",").toSet()
-            }
-            current.contains(":") -> {
-                current.split(":").toSet()
-            }
-            else -> setOf(current)
+        //Some ROMs (eg. ColorOS, One UI) store the short form (pkg/.Class) or mix separators,
+        //so compare parsed components rather than raw strings
+        current.split(":", ",").any {
+            ComponentName.unflattenFromString(it.trim()) == COMPONENT_ACCESSIBILITY_SERVICE
         }
-        currentSet.contains(COMPONENT_ACCESSIBILITY_SERVICE.flattenToString())
     }
 
     override fun bringToFrontOnAccessibilityStart(fragment: Fragment) {
