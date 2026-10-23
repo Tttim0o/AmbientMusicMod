@@ -10,6 +10,7 @@ import com.kieronquinn.app.ambientmusicmod.model.history.HistoryEntry
 import com.kieronquinn.app.ambientmusicmod.ui.views.LifecycleAwareRecyclerView
 import com.kieronquinn.app.ambientmusicmod.utils.extensions.isDarkMode
 import com.kieronquinn.app.ambientmusicmod.utils.extensions.onClicked
+import com.kieronquinn.app.ambientmusicmod.utils.extensions.whenResumed
 import com.kieronquinn.app.pixelambientmusic.model.RecognitionSource
 import com.kieronquinn.monetcompat.core.MonetCompat
 
@@ -38,7 +39,7 @@ class HistoryAdapter(
         return ViewHolder(ItemHistoryBinding.inflate(layoutInflater, parent, false))
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) = with(holder.binding) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int): Unit = with(holder.binding) {
         val item = items[position]
         val context = root.context
         val ago = DateUtils.getRelativeTimeSpanString(
@@ -70,6 +71,7 @@ class HistoryAdapter(
                 onFavouriteClicked(item)
             }
         }
+        Unit
     }
 
     data class ViewHolder(val binding: ItemHistoryBinding):
