@@ -132,7 +132,15 @@ class ShizukuServiceRepositoryImpl(
         }
         if(awaitShizuku() != true)
             return ShizukuServiceResponse.Failed(FailureReason.NO_BINDER)
-        if(!requestPermission())
+        val hasPermission = try {
+            requestPermission()
+        }catch (e: IllegalStateException){
+            //"Not an attached client": the binder exists but this app is not yet attached to it
+            return ShizukuServiceResponse.Failed(FailureReason.NO_BINDER)
+        }catch (e: RemoteException){
+            return ShizukuServiceResponse.Failed(FailureReason.NO_BINDER)
+        }
+        if(!hasPermission)
             return ShizukuServiceResponse.Failed(FailureReason.PERMISSION_DENIED)
         val bound = getService()
             ?: return ShizukuServiceResponse.Failed(FailureReason.BIND_FAILED)
