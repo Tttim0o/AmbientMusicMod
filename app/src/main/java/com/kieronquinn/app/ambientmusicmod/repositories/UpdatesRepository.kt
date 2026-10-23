@@ -70,8 +70,9 @@ class UpdatesRepositoryImpl(
 
     private val packageManager = context.packageManager
     private val updatesCacheDir = File(context.cacheDir, "updates")
-    private val pamProvider = GitHubProvider.getGitHubProvider("NowPlaying")
-    private val ammProvider = GitHubProvider.getGitHubProvider("AmbientMusicMod")
+    //Pixel Ambient Music is still released upstream, this app is released from the fork
+    private val pamProvider = GitHubProvider.getGitHubProvider("KieronQuinn/NowPlaying")
+    private val ammProvider = GitHubProvider.getGitHubProvider(BuildConfig.UPDATE_REPOSITORY)
 
     override val containerCheckUpdatesBus = MutableStateFlow(System.currentTimeMillis())
 

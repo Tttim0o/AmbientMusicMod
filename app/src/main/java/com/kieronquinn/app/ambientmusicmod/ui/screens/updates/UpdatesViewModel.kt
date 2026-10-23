@@ -1,5 +1,6 @@
 package com.kieronquinn.app.ambientmusicmod.ui.screens.updates
 
+import com.kieronquinn.app.ambientmusicmod.BuildConfig
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -118,7 +119,7 @@ class UpdatesViewModelImpl(
 
     companion object {
         private const val LINK_TWITTER = "https://kieronquinn.co.uk/redirect/AmbientMusicMod/twitter"
-        private const val LINK_GITHUB = "https://kieronquinn.co.uk/redirect/AmbientMusicMod/github"
+        private const val LINK_GITHUB = "https://github.com/${BuildConfig.UPDATE_REPOSITORY}"
         private const val LINK_XDA = "https://kieronquinn.co.uk/redirect/AmbientMusicMod/xda"
         private const val LINK_DONATE = "https://kieronquinn.co.uk/redirect/AmbientMusicMod/donate"
         private const val MIN_MULTIPLE_COUNTRIES_VERSION_CODE = 120L
