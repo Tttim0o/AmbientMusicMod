@@ -57,7 +57,17 @@ class AmbientServiceRepositoryImpl(
                     service = null
                 }
             }
-            context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+            val bound = try {
+                context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+            }catch (e: SecurityException){
+                //Pixel Ambient Music is signed with a different key to this app
+                false
+            }
+            if(!bound && !hasResumed) {
+                //Not installed or not allowed, the connection will never be made
+                hasResumed = true
+                it.resume(null)
+            }
         }
     }
 

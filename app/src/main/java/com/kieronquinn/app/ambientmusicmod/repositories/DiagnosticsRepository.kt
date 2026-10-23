@@ -54,6 +54,15 @@ class DiagnosticsRepositoryImpl(
             appendLine()
             appendLine("[Apps]")
             appendCheck("Pixel Ambient Music installed", packageManager.isAppInstalled(PACKAGE_NAME_PAM))
+            if(packageManager.isAppInstalled(PACKAGE_NAME_PAM)) {
+                val signaturesMatch = packageManager.checkSignatures(
+                    context.packageName, PACKAGE_NAME_PAM
+                ) == PackageManager.SIGNATURE_MATCH
+                appendCheck("Pixel Ambient Music signed with the same key", signaturesMatch)
+                if(!signaturesMatch) {
+                    appendLine("  -> Both apps must be signed with the same key, install the matching Pixel Ambient Music build")
+                }
+            }
             appendCheck("Google app installed (On Demand)", packageManager.isAppInstalled(PACKAGE_NAME_GSB))
             appendLine()
             appendLine("[Providers]")
