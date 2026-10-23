@@ -88,8 +88,6 @@ class NowPlayingViewModelImpl(
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
     }
 
-    }
-
     override val state = reloadBus.flatMapLatest {
         remoteSettingsRepository
             .getRemoteSettings(viewModelScope)
