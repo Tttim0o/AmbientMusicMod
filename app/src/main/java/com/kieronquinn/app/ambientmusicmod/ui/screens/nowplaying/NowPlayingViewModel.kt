@@ -88,11 +88,6 @@ class NowPlayingViewModelImpl(
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
     }
 
-    private val historyIntent by lazy {
-        Intent("com.google.intelligence.sense.NOW_PLAYING_HISTORY").apply {
-            `package` = PACKAGE_NAME_PAM
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        }
     }
 
     override val state = reloadBus.flatMapLatest {
@@ -147,7 +142,7 @@ class NowPlayingViewModelImpl(
 
     override fun onHistoryClicked() {
         viewModelScope.launch {
-            navigation.navigate(historyIntent)
+            navigation.navigate(NowPlayingFragmentDirections.actionNowPlayingFragmentToHistoryFragment())
         }
     }
 
