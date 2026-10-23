@@ -21,7 +21,7 @@ def getKeystoreProperties() {
 }
 
 android {
-    compileSdk 32
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.kieronquinn.app.ondemandoverlay"
