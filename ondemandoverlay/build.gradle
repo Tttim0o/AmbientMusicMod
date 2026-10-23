@@ -34,7 +34,7 @@ android {
     signingConfigs {
         release {
             def keystore = getKeystoreProperties()
-            if (keystore != null) {
+            if (keystore != null && !keystore.getProperty("storeFile").isEmpty()) {
                 storeFile file(keystore.getProperty("storeFile"))
                 storePassword keystore.getProperty("storePassword")
                 keyAlias keystore.getProperty("keyAlias")
@@ -46,7 +46,9 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig signingConfigs.release
+            if (signingConfigs.release.storeFile != null) {
+                signingConfig signingConfigs.release
+            }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildOutputs.all {
                 outputFileName = "OnDemandOverlay.apk"
