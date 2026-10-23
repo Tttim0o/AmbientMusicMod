@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 
 interface HistoryRepository {
 
@@ -50,11 +51,12 @@ class HistoryRepositoryImpl(context: Context): HistoryRepository {
     private val history = callbackFlow {
         val observer = object: ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
-                trySend(loadHistory())
+                //Reload off the main thread, history can span months of entries
+                launch { send(loadHistory()) }
             }
         }
         contentResolver.safeRegisterContentObserver(URI_HISTORY, true, observer)
-        trySend(loadHistory())
+        send(loadHistory())
         awaitClose {
             contentResolver.unregisterContentObserver(observer)
         }
