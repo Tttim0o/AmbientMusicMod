@@ -332,6 +332,10 @@
     <string name="settings_advanced_content">Change the audio recording gain and more</string>
 
     <string name="settings_advanced_gain">Gain</string>
+    <string name="settings_advanced_diagnostics">Diagnostics</string>
+    <string name="settings_advanced_diagnostics_content">Check Shizuku/Sui, Pixel Ambient Music, providers and permissions, and copy a report for bug reports</string>
+    <string name="settings_advanced_diagnostics_running">Running diagnostics…</string>
+    <string name="settings_advanced_diagnostics_copy">Copy</string>
     <string name="settings_advanced_gain_content">Apply a gain to audio recordings.\n<b>Note:</b> A higher gain also increases noise, use with care.</string>
     <string name="settings_advanced_gain_reset">Reset</string>
     <string name="settings_advanced_gain_formatter">%1sx</string>

@@ -1,17 +1,26 @@
 package com.kieronquinn.app.ambientmusicmod.ui.screens.settings.advanced
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.core.content.getSystemService
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.kieronquinn.app.ambientmusicmod.R
 import com.kieronquinn.app.ambientmusicmod.model.settings.BaseSettingsItem
 import com.kieronquinn.app.ambientmusicmod.model.settings.GenericSettingsItem
+import com.kieronquinn.app.ambientmusicmod.repositories.DiagnosticsRepository
 import com.kieronquinn.app.ambientmusicmod.ui.base.BackAvailable
 import com.kieronquinn.app.ambientmusicmod.ui.base.settings.BaseSettingsFragment
 import com.kieronquinn.app.ambientmusicmod.ui.screens.settings.advanced.SettingsAdvancedViewModel.State
 import com.kieronquinn.app.ambientmusicmod.utils.extensions.isArmv7
 import com.kieronquinn.app.ambientmusicmod.utils.extensions.whenResumed
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SettingsAdvancedFragment: BaseSettingsFragment(), BackAvailable {
@@ -19,6 +28,7 @@ class SettingsAdvancedFragment: BaseSettingsFragment(), BackAvailable {
     override val addAdditionalPadding = true
 
     private val viewModel by viewModel<SettingsAdvancedViewModel>()
+    private val diagnosticsRepository by inject<DiagnosticsRepository>()
 
     override val adapter by lazy {
         SettingsAdvancedAdapter(binding.settingsBaseRecyclerView, emptyList())
@@ -53,6 +63,12 @@ class SettingsAdvancedFragment: BaseSettingsFragment(), BackAvailable {
     }
 
     private fun loadItems(state: State.Loaded): List<BaseSettingsItem> = listOfNotNull(
+        GenericSettingsItem.Setting(
+            getString(R.string.settings_advanced_diagnostics),
+            getString(R.string.settings_advanced_diagnostics_content),
+            R.drawable.ic_info,
+            onClick = ::showDiagnostics
+        ),
         GenericSettingsItem.Setting(
             getString(R.string.settings_advanced_gain),
             getText(R.string.settings_advanced_gain_content),
@@ -121,6 +137,24 @@ class SettingsAdvancedFragment: BaseSettingsFragment(), BackAvailable {
             }
         }else null
     )
+
+    private fun showDiagnostics() {
+        Toast.makeText(
+            requireContext(), R.string.settings_advanced_diagnostics_running, Toast.LENGTH_SHORT
+        ).show()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val report = diagnosticsRepository.buildReport()
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.settings_advanced_diagnostics)
+                .setMessage(report)
+                .setPositiveButton(android.R.string.ok, null)
+                .setNeutralButton(R.string.settings_advanced_diagnostics_copy) { _, _ ->
+                    val clipboard = requireContext().getSystemService<ClipboardManager>()
+                    clipboard?.setPrimaryClip(ClipData.newPlainText("Diagnostics", report))
+                }
+                .show()
+        }
+    }
 
     private fun getStringOrUnsupported(isEnabled: Boolean, @StringRes resource: Int): CharSequence {
         return if(isEnabled){

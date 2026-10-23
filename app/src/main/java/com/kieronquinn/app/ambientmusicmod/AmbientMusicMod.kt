@@ -32,6 +32,8 @@ import com.kieronquinn.app.ambientmusicmod.repositories.EncryptedSettingsReposit
 import com.kieronquinn.app.ambientmusicmod.repositories.EncryptedSettingsRepositoryImpl
 import com.kieronquinn.app.ambientmusicmod.repositories.ExternalAccessRepository
 import com.kieronquinn.app.ambientmusicmod.repositories.ExternalAccessRepositoryImpl
+import com.kieronquinn.app.ambientmusicmod.repositories.DiagnosticsRepository
+import com.kieronquinn.app.ambientmusicmod.repositories.DiagnosticsRepositoryImpl
 import com.kieronquinn.app.ambientmusicmod.repositories.JobsRepository
 import com.kieronquinn.app.ambientmusicmod.repositories.JobsRepositoryImpl
 import com.kieronquinn.app.ambientmusicmod.repositories.RecognitionRepository
@@ -177,6 +179,7 @@ class AmbientMusicMod: Application() {
         single<BatteryOptimisationRepository> { BatteryOptimisationRepositoryImpl(get()) }
         single<JobsRepository>(createdAtStart = true) { JobsRepositoryImpl(get(), get(), get()) }
         single<ExternalAccessRepository> { ExternalAccessRepositoryImpl(get(), get(), get()) }
+        single<DiagnosticsRepository> { DiagnosticsRepositoryImpl(get(), get(), get()) }
         single { BlurProvider.getBlurProvider(resources) }
         single { createMarkwon() }
         single { Gson() }
