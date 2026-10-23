@@ -2,6 +2,8 @@ name: Smoke test
 
 on:
   workflow_dispatch:
+  push:
+    branches: [modernize]
 
 jobs:
   launch:
