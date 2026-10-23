@@ -136,6 +136,9 @@ class UpdatesViewModelImpl(
         emit(updatesRepository.getPAMUpdateState(ignoreCache = clearCache))
     }.flowOn(Dispatchers.IO)
 
+    //Highest number of pending files seen in this download session, used as the bar's maximum
+    private var downloadPeak = 0
+
     private val downloadState = combine(
         shardsRepository.getCurrentDownloads(),
         deviceConfigRepository.superpacksRequireWiFi.asFlow(),
@@ -143,7 +146,11 @@ class UpdatesViewModelImpl(
         context.getNetworkCapabilities(),
         context.isCharging()
     ) { downloadCount, requireWifi, requireCharging, capabilities, charging ->
-        if(downloadCount == 0) return@combine Pair(null, 0)
+        if(downloadCount == 0) {
+            downloadPeak = 0
+            return@combine Triple(null, 0, 0)
+        }
+        downloadPeak = maxOf(downloadPeak, downloadCount)
         val state = when {
             !capabilities.unmetered && capabilities.hasInternet && requireWifi -> {
                 ShardDownloadState.WAITING_FOR_NETWORK
@@ -156,7 +163,7 @@ class UpdatesViewModelImpl(
             }
             else -> ShardDownloadState.DOWNLOADING
         }
-        Pair(state, downloadCount)
+        Triple(state, downloadCount, downloadPeak)
     }
 
     override val state = reloadBus.flatMapLatest {
@@ -169,6 +176,7 @@ class UpdatesViewModelImpl(
             val shards = shardsRepository.getShardsState(it.second).firstNotNull().apply {
                 downloadState = download.first
                 downloadCount = download.second
+                downloadTotal = download.third
             }
             val supportsMultipleCountries = when(pam) {
                 is UpdateState.UpToDate -> {

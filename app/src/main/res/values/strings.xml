@@ -436,10 +436,7 @@
     <string name="updates_shards_view_tracks">View Track List</string>
     <string name="updates_shards_plus">+%1d</string>
     <string name="updates_shards_status_updating">Updating</string>
-    <plurals name="updates_shards_status_downloading_count">
-        <item quantity="one">Downloading %d database file</item>
-        <item quantity="other">Downloading %d database files</item>
-    </plurals>
+    <string name="updates_shards_status_downloading_progress">Downloading databases: %1$d of %2$d files</string>
     <string name="updates_shards_status_waiting_for_wifi">Waiting for suitable Wi-Fi</string>
     <string name="updates_shards_status_waiting_for_charging">Waiting until device is charging</string>
 
