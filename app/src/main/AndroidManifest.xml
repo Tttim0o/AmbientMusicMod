@@ -105,6 +105,17 @@
         </service>
 
         <service
+            android:name=".service.RecogniseTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_fab_recognise"
+            android:label="@string/quick_settings_tile_recognise_title"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
             android:name=".service.ShellProxyService"
             android:exported="true"
             android:permission="com.kieronquinn.app.ambientmusicmod.ACCESS_SERVICE">

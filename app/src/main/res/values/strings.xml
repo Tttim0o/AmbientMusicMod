@@ -607,5 +607,6 @@
     <string name="quick_settings_tile_title">Now Playing</string>
     <string name="quick_settings_tile_enabled">Enabled</string>
     <string name="quick_settings_tile_disabled">Disabled</string>
+    <string name="quick_settings_tile_recognise_title">Identify song</string>
 
 </resources>
