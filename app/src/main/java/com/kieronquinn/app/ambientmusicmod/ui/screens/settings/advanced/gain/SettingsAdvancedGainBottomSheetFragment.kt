@@ -69,7 +69,7 @@ class SettingsAdvancedGainBottomSheetFragment: BaseBottomSheetFragment<FragmentS
 
     private fun setupSlider() = with(binding.settingsAdvancedGainSlider) {
         setLabelFormatter {
-            val value = String.format(Locale.getDefault(), "%.1f", it)
+            val value = String.format(Locale.getDefault(), "%.2f", it)
             getString(R.string.settings_advanced_gain_formatter, value)
         }
         handleSliderChange(viewModel.gain.value)
@@ -86,7 +86,9 @@ class SettingsAdvancedGainBottomSheetFragment: BaseBottomSheetFragment<FragmentS
     }
 
     private fun handleSliderChange(value: Float) {
-        binding.settingsAdvancedGainSlider.value = value
+        //Snap to the slider's step and range, it throws on values that are off-step
+        val slider = binding.settingsAdvancedGainSlider
+        slider.value = (Math.round(value * 100f) / 100f).coerceIn(slider.valueFrom, slider.valueTo)
     }
 
 }
