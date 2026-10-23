@@ -25,7 +25,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import rikka.shizuku.Shizuku
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 interface ShizukuServiceRepository {
 
@@ -47,7 +46,13 @@ interface ShizukuServiceRepository {
             /**
              *  The service is not immediately available (only used in [runWithServiceIfAvailable])
              */
-            NOT_AVAILABLE
+            NOT_AVAILABLE,
+
+            /**
+             *  Shizuku (or Sui) is running and permitted, but the user service did not bind in time
+             *  or the bind call failed
+             */
+            BIND_FAILED
         }
 
         /**
@@ -74,6 +79,7 @@ class ShizukuServiceRepositoryImpl(
     companion object {
         private const val SHIZUKU_PERMISSION_REQUEST_CODE = 1001
         private const val SHIZUKU_TIMEOUT = 2500L
+        private const val BIND_TIMEOUT = 10000L
     }
 
     private val shizukuComponent by lazy {
@@ -128,7 +134,9 @@ class ShizukuServiceRepositoryImpl(
             return ShizukuServiceResponse.Failed(FailureReason.NO_BINDER)
         if(!requestPermission())
             return ShizukuServiceResponse.Failed(FailureReason.PERMISSION_DENIED)
-        return ShizukuServiceResponse.Success(block(getService()))
+        val bound = getService()
+            ?: return ShizukuServiceResponse.Failed(FailureReason.BIND_FAILED)
+        return ShizukuServiceResponse.Success(block(bound))
     }
 
     override fun <T> runWithServiceIfAvailable(
@@ -195,9 +203,8 @@ class ShizukuServiceRepositoryImpl(
         }
     }
 
-    private suspend fun getService() = serviceLock.withLock {
-        suspendCoroutine<IShellProxy> {
-            var hasResumed = false
+    private suspend fun getService(): IShellProxy? = serviceLock.withLock {
+        val result = suspendCancellableCoroutineWithTimeout<IShellProxy?>(BIND_TIMEOUT) {
             val serviceConnection = object: ServiceConnection {
                 override fun onServiceConnected(component: ComponentName, binder: IBinder) {
                     serviceConnection = this
@@ -206,10 +213,7 @@ class ShizukuServiceRepositoryImpl(
                     scope.launch {
                         onConnectionChange.emit(System.currentTimeMillis())
                     }
-                    if(!hasResumed){
-                        hasResumed = true
-                        it.resume(service)
-                    }
+                    if(it.isActive) it.resume(service)
                 }
 
                 override fun onServiceDisconnected(component: ComponentName) {
@@ -219,9 +223,34 @@ class ShizukuServiceRepositoryImpl(
                         onConnectionChange.emit(System.currentTimeMillis())
                     }
                 }
+
+                override fun onNullBinding(name: ComponentName) {
+                    if(it.isActive) it.resume(null)
+                }
+
+                override fun onBindingDied(name: ComponentName) {
+                    if(it.isActive) it.resume(null)
+                }
             }
-            Shizuku.bindUserService(userServiceArgs, serviceConnection)
+            try {
+                Shizuku.bindUserService(userServiceArgs, serviceConnection)
+            }catch (e: Throwable){
+                if(it.isActive) it.resume(null)
+            }
         }
+        if(result == null) {
+            //Timed out or failed, make sure a half-bound service is not left around
+            serviceConnection?.let {
+                try {
+                    Shizuku.unbindUserService(userServiceArgs, it, true)
+                }catch (e: Throwable){
+                    //Shizuku is likely already gone
+                }
+            }
+            serviceConnection = null
+            service = null
+        }
+        result
     }
 
     private fun IShellProxy.safePing(): Boolean {
