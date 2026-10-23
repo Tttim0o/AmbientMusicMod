@@ -52,7 +52,8 @@ interface ShardsRepository {
         val local: LocalShardsState,
         val remote: RemoteShardsState?,
         val updateAvailable: Boolean,
-        var downloadState: ShardDownloadState? = null
+        var downloadState: ShardDownloadState? = null,
+        var downloadCount: Int = 0
     )
 
     data class LocalShardsState(

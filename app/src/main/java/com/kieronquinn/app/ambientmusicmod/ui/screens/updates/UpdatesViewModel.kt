@@ -143,8 +143,8 @@ class UpdatesViewModelImpl(
         context.getNetworkCapabilities(),
         context.isCharging()
     ) { downloadCount, requireWifi, requireCharging, capabilities, charging ->
-        if(downloadCount == 0) return@combine null
-        when {
+        if(downloadCount == 0) return@combine Pair(null, 0)
+        val state = when {
             !capabilities.unmetered && capabilities.hasInternet && requireWifi -> {
                 ShardDownloadState.WAITING_FOR_NETWORK
             }
@@ -156,6 +156,7 @@ class UpdatesViewModelImpl(
             }
             else -> ShardDownloadState.DOWNLOADING
         }
+        Pair(state, downloadCount)
     }
 
     override val state = reloadBus.flatMapLatest {
@@ -166,7 +167,8 @@ class UpdatesViewModelImpl(
             automaticDatabaseUpdates.asFlow()
         ) { amm, pam, download, automaticUpdates ->
             val shards = shardsRepository.getShardsState(it.second).firstNotNull().apply {
-                downloadState = download
+                downloadState = download.first
+                downloadCount = download.second
             }
             val supportsMultipleCountries = when(pam) {
                 is UpdateState.UpToDate -> {

@@ -105,7 +105,13 @@ class UpdatesAdapter(
                 updatesShardsViewSpace.isVisible = false
                 updatesShardsViewTracks.isVisible = false
                 updatesShardsTrackDataLoading.isVisible = true
-                updatesShardsStatus.setText(R.string.updates_shards_status_updating)
+                updatesShardsStatus.text = if(shardsState.downloadCount > 0) {
+                    root.resources.getQuantityString(
+                        R.plurals.updates_shards_status_downloading_count,
+                        shardsState.downloadCount,
+                        shardsState.downloadCount
+                    )
+                } else root.context.getString(R.string.updates_shards_status_updating)
                 updatesShardsVersion.text = root.context.getString(
                     R.string.updates_version, shardsState.local.versionCode.toString()
                 )

@@ -1,6 +1,7 @@
 package com.kieronquinn.app.ambientmusicmod.repositories
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.pm.PackageManager.NameNotFoundException
 import com.google.gson.Gson
 import com.kieronquinn.app.ambientmusicmod.BuildConfig
@@ -102,6 +103,13 @@ class UpdatesRepositoryImpl(
         }catch (e: Exception){
             null
         }
+        if(localAsiInfo != null && isPamSignedByThisApp()) {
+            //Upstream releases are signed with a different key and can't install over a
+            //re-signed build, so don't offer them. Updates have to be re-signed manually.
+            return@withContext UpdateState.UpToDate(
+                localAsiInfo.versionName ?: "", localAsiInfo.longVersionCode
+            )
+        }
         getRelease(
             localAsiInfo?.versionName,
             localAsiInfo?.longVersionCode,
@@ -121,6 +129,12 @@ class UpdatesRepositoryImpl(
             "amm",
             ignoreCache
         )
+    }
+
+    private fun isPamSignedByThisApp(): Boolean {
+        return packageManager.checkSignatures(
+            BuildConfig.APPLICATION_ID, PACKAGE_NAME_PAM
+        ) == PackageManager.SIGNATURE_MATCH
     }
 
     override suspend fun isAnyUpdateAvailable(): Boolean {
