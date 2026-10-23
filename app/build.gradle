@@ -185,10 +185,10 @@ dependencies {
     implementation "dev.rikka.tools.refine:runtime:$refine_version"
 
     //Dagger + Hilt for injection in Astrea
-    implementation "com.google.dagger:hilt-android:2.50"
-    implementation 'com.google.dagger:dagger:2.50'
-    kapt 'com.google.dagger:dagger-compiler:2.50'
-    kapt "com.google.dagger:hilt-compiler:2.50"
+    implementation "com.google.dagger:hilt-android:2.57.2"
+    implementation 'com.google.dagger:dagger:2.57.2'
+    kapt 'com.google.dagger:dagger-compiler:2.57.2'
+    kapt "com.google.dagger:hilt-compiler:2.57.2"
 
     //OSS libraries activity
     implementation 'com.google.android.gms:play-services-oss-licenses:17.1.0'

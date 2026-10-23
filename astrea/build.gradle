@@ -87,10 +87,10 @@ dependencies {
     implementation 'com.google.flogger:google-extensions:0.7.4'
 
     //Dagger + Hilt for injection
-    implementation "com.google.dagger:hilt-android:2.50"
-    implementation 'com.google.dagger:dagger:2.50'
-    kapt 'com.google.dagger:dagger-compiler:2.50'
-    kapt "com.google.dagger:hilt-compiler:2.50"
+    implementation "com.google.dagger:hilt-android:2.57.2"
+    implementation 'com.google.dagger:dagger:2.57.2'
+    kapt 'com.google.dagger:dagger-compiler:2.57.2'
+    kapt "com.google.dagger:hilt-compiler:2.57.2"
 
     //Other Google requirements
     implementation "com.google.guava:guava:32.0.1-android"
