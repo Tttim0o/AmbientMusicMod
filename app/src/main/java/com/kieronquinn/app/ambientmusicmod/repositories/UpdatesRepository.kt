@@ -172,7 +172,8 @@ class UpdatesRepositoryImpl(
         val remoteVersion = remoteRelease?.tag
         return when {
             localVersion != null && localVersionCode != null && remoteRelease != null &&
-                    remoteVersion != null && remoteVersion != localVersion -> {
+                    remoteVersion != null && remoteVersion != localVersion &&
+                    isNewerVersion(remoteVersion, localVersion) -> {
                 UpdateState.UpdateAvailable(
                     localVersion,
                     localVersionCode,
@@ -191,6 +192,26 @@ class UpdatesRepositoryImpl(
             }
             else -> UpdateState.FailedToFetchInitial
         }
+    }
+
+    /**
+     *  Compares the numbers in two version names, eg. "v2.4-modernize.2" is newer than
+     *  "v2.4-modernize.1" and "2.4". If neither contains numbers, any difference counts as newer.
+     */
+    private fun isNewerVersion(remote: String, local: String): Boolean {
+        val remoteParts = remote.versionNumbers()
+        val localParts = local.versionNumbers()
+        if(remoteParts.isEmpty() || localParts.isEmpty()) return remote != local
+        for(i in 0 until maxOf(remoteParts.size, localParts.size)) {
+            val r = remoteParts.getOrElse(i) { 0 }
+            val l = localParts.getOrElse(i) { 0 }
+            if(r != l) return r > l
+        }
+        return false
+    }
+
+    private fun String.versionNumbers(): List<Long> {
+        return Regex("\\d+").findAll(this).mapNotNull { it.value.toLongOrNull() }.toList()
     }
 
     private fun GitHubProvider.getCurrentRelease(): GitHubRelease? {
