@@ -2,6 +2,7 @@ package com.kieronquinn.app.ambientmusicmod.ui.screens.updates.download
 
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.text.format.Formatter
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -85,6 +86,8 @@ class UpdatesDownloadFragment: BoundFragment<FragmentUpdatesDownloadFragmentBind
     }
 
     private fun handleState(state: State){
+        //Only the downloading state shows the size and speed
+        if(state !is State.Downloading) binding.updatesDownloadStats.isVisible = false
         when(state){
             is State.Loading -> setupWithLoading()
             is State.Info -> setupWithInfo(state)
@@ -142,8 +145,26 @@ class UpdatesDownloadFragment: BoundFragment<FragmentUpdatesDownloadFragmentBind
         binding.updatesDownloadTitle.isVisible = true
         binding.updatesDownloadIcon.isVisible = false
         binding.updatesDownloadStartInstall.isVisible = false
-        binding.updatesDownloadProgress.progress = (state.progress * 100).roundToInt()
+        //progress is already 0-100
+        binding.updatesDownloadProgress.setProgressCompat(state.progress.roundToInt(), true)
         binding.updatesDownloadTitle.setText(R.string.update_downloader_downloading_title)
+        val context = requireContext()
+        val downloaded = Formatter.formatShortFileSize(context, state.downloadedBytes)
+        val speed = context.getString(
+            R.string.update_downloader_speed, Formatter.formatShortFileSize(context, state.bytesPerSecond)
+        )
+        binding.updatesDownloadStats.text = if(state.totalBytes > 0) {
+            context.getString(
+                R.string.update_downloader_stats,
+                downloaded,
+                Formatter.formatShortFileSize(context, state.totalBytes),
+                state.progress.roundToInt(),
+                speed
+            )
+        }else{
+            context.getString(R.string.update_downloader_stats_unknown, downloaded, speed)
+        }
+        binding.updatesDownloadStats.isVisible = true
     }
 
     private fun setupWithDone() {

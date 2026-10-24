@@ -35,7 +35,14 @@ abstract class UpdatesDownloadViewModel: ViewModel() {
         object Loading: State()
         data class Info(val release: Release): State()
         data class StartDownload(val url: String, val fileName: String): State()
-        data class Downloading(val requestId: Long, val progress: Double, val downloadFile: File): State()
+        data class Downloading(
+            val requestId: Long,
+            val progress: Double,
+            val downloadFile: File,
+            val downloadedBytes: Long = 0L,
+            val totalBytes: Long = -1L,
+            val bytesPerSecond: Long = 0L
+        ): State()
         data class StartInstall(val outputUri: Uri): State()
         data class Done(val outputUri: Uri): State()
         object Failed: State()
@@ -49,6 +56,10 @@ class UpdatesDownloadViewModelImpl(
     private val updatesRepository: UpdatesRepository
 ): UpdatesDownloadViewModel() {
 
+    companion object {
+        private const val SPEED_SAMPLE_WINDOW = 1000L
+    }
+
     private val downloadManagerTitle = context.getString(R.string.app_name)
     private val downloadManagerDescription = context.getString(R.string.download_manager_description)
     private val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
@@ -58,6 +69,10 @@ class UpdatesDownloadViewModelImpl(
         FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", downloadFile)
     }
     private val resumed = MutableStateFlow(false)
+
+    private var speedSampleTime = 0L
+    private var speedSampleBytes = 0L
+    private var speed = 0L
 
     private val downloadFolder = updatesRepository.getUpdatesFolder(context).apply {
         //Clear the updates folder on start to remove unfinished downloads
@@ -81,16 +96,31 @@ class UpdatesDownloadViewModelImpl(
         query.setFilterById(downloading.requestId)
         val c: Cursor = downloadManager.query(query)
         var progress = 0.0
-        if (c.moveToFirst()) {
-            val sizeIndex: Int =
-                c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-            val downloadedIndex: Int =
-                c.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-            val size = c.getInt(sizeIndex)
-            val downloaded = c.getInt(downloadedIndex)
-            if (size != -1) progress = downloaded * 100.0 / size
+        var size = -1L
+        var downloaded = 0L
+        c.use {
+            if (it.moveToFirst()) {
+                //Sizes are longs, APKs over 2GB would overflow getInt
+                size = it.getLong(it.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+                downloaded = it.getLong(it.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+                if (size > 0) progress = downloaded * 100.0 / size
+            }
         }
-        state.emit(State.Downloading(downloading.requestId, progress, downloading.downloadFile))
+        //Speed is averaged over at least a second of samples so it doesn't jitter
+        val now = System.currentTimeMillis()
+        if (speedSampleTime == 0L || downloaded < speedSampleBytes) {
+            speedSampleTime = now
+            speedSampleBytes = downloaded
+        }
+        val elapsed = now - speedSampleTime
+        if (elapsed >= SPEED_SAMPLE_WINDOW) {
+            speed = (downloaded - speedSampleBytes) * 1000L / elapsed
+            speedSampleTime = now
+            speedSampleBytes = downloaded
+        }
+        state.emit(State.Downloading(
+            downloading.requestId, progress, downloading.downloadFile, downloaded, size, speed
+        ))
     }
 
     private fun setupDownloadCompleteListener() = viewModelScope.launch {
@@ -181,8 +211,12 @@ class UpdatesDownloadViewModelImpl(
         val requestId = downloadManager.enqueue(DownloadManager.Request(Uri.parse(url)).apply {
             setTitle(downloadManagerTitle)
             setDescription(downloadManagerDescription)
+            //Progress is shown in the app, not in a notification
+            setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN)
             setDestinationUri(Uri.fromFile(downloadFile))
         })
+        speedSampleTime = 0L
+        speed = 0L
         state.emit(State.Downloading(requestId, 0.0, downloadFile))
     }
 

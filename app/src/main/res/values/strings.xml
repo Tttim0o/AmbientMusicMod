@@ -456,6 +456,9 @@
     <string name="download_manager_description">Downloading update…</string>
     <string name="download_manager_description_initial">Downloading APK…</string>
     <string name="updates_download_loading">Loading…</string>
+    <string name="update_downloader_speed">%1$s/s</string>
+    <string name="update_downloader_stats">%1$s of %2$s (%3$d%%) · %4$s</string>
+    <string name="update_downloader_stats_unknown">%1$s downloaded · %2$s</string>
     <string name="updates_download_done">Download Complete</string>
     <string name="updates_download_failed">Download Failed</string>
 
