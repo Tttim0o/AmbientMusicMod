@@ -292,7 +292,10 @@ fun Context.onPackageChanged(changingPackageName: String, sendInitial: Boolean =
 
 private fun NetworkCapabilities.toNetworkCapability(): RemoteSettingsRepository.NetworkCapability {
     val hasInternet = hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-    val isUnmetered = hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+    //Some unlimited mobile plans report NOT_METERED, but Pixel Ambient Music still won't download
+    //its databases over cellular when "require Wi-Fi" is on, so cellular never counts as unmetered
+    val isUnmetered = hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) &&
+            !hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
     return RemoteSettingsRepository.NetworkCapability(hasInternet, isUnmetered)
 }
 
